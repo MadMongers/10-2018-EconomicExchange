@@ -1,0 +1,289 @@
+%title: Economic Exchange For Everyone Else
+%author: James Edwards
+%date: 2018-09-26
+
+-> Step Transactions <-
+
+
+   PurchaseStuffFromGameCrafter(
+      'arg1',
+      'arg2',
+      Steps(
+                  one('stuff'),
+                  two('more stuff'),   # Chuck Barris
+      ),
+   )->attempt;
+*========================================================*
+My last presentation on this stuff went over like a lead
+ballon. Nobody grooved on some of the Ovid's specific stuff.
+But creating a business transaction, NOT just a SQL 
+transaction, is important.  Lets try migrate this to the 
+real world.  And learn about FSA::Rules in the process.
+
+-------------------------------------------------
+
+->  Anonymous Sub Routine(s) Will Help <-
+
+sub PurchaseStuffFromGameCrafter { 1 };
+sub Steps { say "steps"; return 2 };
+
+PurchaseStuffFromGameCrafter( 
+      'arg1',
+      'arg2', 
+      Steps(),
+)->attempt;
+
+*Turns into*
+
+*Note*:   sub {my @x; say "anon steps"; return 99}  # is a ref to a sub
+PurchaseStuffFromGameCrafter( 
+      'arg1',
+      'arg2', 
+      (sub {my @x; say "anon steps"; return 99})->(), 
+)->attempt;
+
+*========================================================*
+This time I'm going to use anonymous sub routines.
+
+-------------------------------------------------
+
+Kept on searching
+   Tried a bunch of searches then one day
+     Multi Step Transaction
+     Business process Transaction
+       Found reference to State Machine
+
+   Perl State Machine
+     Found a StackOverflow Q. about DFA::Simple
+       Found a comment by Ovid about FSA::Rules
+         FSA::Rules
+           Authors
+             David E. Wheeler
+             Curtis "Ovid" Poe
+
+   Seems a kool place to start
+
+-------------------------------------------------
+
+->  I'll use FSA::Rules. Example in POD  <-
+
+  my $fsa = FSA::Rules->new(
+     ping => {
+         do => sub { print "ping!\n";
+                     my $state = shift;
+                     $state->result('pong');
+                     $state->machine->{count}++;
+         },
+         rules => [
+             game_over => sub { shift->machine->{count} >= 20 },
+             pong      => sub { shift->result eq 'pong' },
+         ],
+     },
+     pong => {
+         do => sub { print "pong!\n" },
+         rules => [ ping => 1, ], # always goes back to ping
+     },
+     game_over => { do => sub { print "Game Over\n" } }
+  );
+  $fsa->start;
+  $fsa->switch until $fsa->at('game_over');
+
+-------------------------------------------------
+
+->  Lets remember my code <-
+
+   PurchaseStuffFromGameCrafter(
+      'arg1',
+      'arg2',
+      Steps(
+             one('stuff'),
+             two('more stuff'),
+      ),
+   )->attempt;
+
+-------------------------------------------------
+
+->  My source code filter will... Part 1 <-
+
+( sub {
+   my $fsa = FSA::Rules->new(
+
+   *step0* => {
+      do => sub {
+         my $rc = *one*();
+         my $state = shift;
+         $state->result($rc);
+      },
+   },
+
+   *step1* => {
+      do => sub {
+         my $rc = *two*();
+         my $state = shift;
+         $state->result($rc);
+      },
+   },
+
+-------------------------------------------------
+
+->  My source code filter will... Part 2 <-
+
+   *begin* => {
+      do => sub {
+         my $state = shift;
+         $state->result( begin_trans() );
+      },
+   },
+
+   *end* => {
+      do => sub {
+         my $state = shift;
+         $state->result( end_trans() );
+      },
+   },
+
+); # end of FSA::Rules->new()
+
+*========================================================*
+I'll tack on a begin and end
+
+-------------------------------------------------
+
+->  My source code filter will... Part 3 <-
+
+# No testing of return codes of individual steps in this version
+
+   my @behaviors = ( undef, undef );
+   *try* {
+      $fsa->curr_state('begin');
+      for my $j (0..1) {              # loop thru user's steps
+        $fsa->curr_state("step$j");
+      }
+      $fsa->curr_state('end');
+   }
+   *catch* {
+      die $_; # rethrow
+   };
+
+   return 1;
+
+  } # end of anonymous sub
+ )->() # call anonymous sub 
+)->attempt; # end of PurchaseStuffFromGameCrafter argument list
+
+-------------------------------------------------
+
+->  jimE's rules  <-
+
+We're keeping this simple
+1) each step defined on a single line in the original source.
+    (probably have to change PerlTidy for 80+ character lines)
+2) The Behavior ASSERTions are on the top.
+3) The Behavior FAILUREs and ALWAYSs are on the bottom.
+3) No more dispatching subroutine/method names to the correct module.
+    (i.e. Wallet will not be resolved )
+           my $asset = 'WALLET';
+           my $package_base = 'Veure::Economy::Asset::';
+           my $assetpackage = $package_base . $asset;
+    (This be your opportunity) 
+4) If an exception is caught (Try::Tiny), just gonna rethrow it!
+     die $_; # rethrow
+     Note: JT Smith's Ouch.pm is kool for creating exceptions.
+5) Individual *steps* will NOT be constructors (Ovid land)
+6) Your project needs to create it's own begin and end transaction
+   subroutines.
+
+-------------------------------------------------
+
+->  Disclaimers  <-
+
+1) Try::Tiny and FSA::Rules don't have 'import' methods so I couldn't create
+   one use/include package. (i.e. Modern::Perl)
+
+2) 'Steps' must be an last argument to another subroutine/method.
+   Otherwise the source filter will create a syntax error.
+
+3) Note: Filter::Util::Call does NOT play fair with HEREDOCs
+
+-------------------------------------------------
+
+->  Future Version Will Handle *Behaviors* <-
+
+   PurchaseSomeStuffFromGameCrafter(
+      'arg1',
+      'arg2',
+      Steps(
+         *ASSERT*(  func0() ),
+                  func1(),
+                  func2(),
+         *FAILURE*( func3() ),
+         *ALWAYS*(  func4() ),
+      ),
+   )->attempt;
+
+-------------------------------------------------
+
+->  Behaviors <-
+
+Stolen from Curtis 'Ovid' Poe
+
+Posted on April 20, 2018
+[Extending Economic Exchange Conditions](https://blog.taustation.space/blog/extending-economic-exchange-conditions/)
+
+These behaviors alter the flow of steps:
+
+*ASSERT*  – If this step fails, do not call any other steps for any reason.
+*ALWAYS*  – Always run this step (unless an ASSERT was previously failed).
+*FAILURE* – Run this step if any earlier step failed (unless an ASSERT was 
+          previously failed).
+
+-------------------------------------------------
+
+->  Future Version Will ...  <-
+
+1) Will create another filter to handle
+      my $rc = Steps(
+                  one('stuff'),
+                  two('more stuff'),   # Chuck Barris
+               );
+
+   Merging the two filters will be an opportunity.
+   Maybe a *Stepsa* (argument) and *Stepsp* (procedure)
+   for the stings to search for.
+
+-------------------------------------------------
+
+->  Ovid's Communications on the topic  <-
+Posted on December 15, 2016 [The Tau Station Universe: Software](https://blog.taustation.space/blog/the-tau-station-universe-software/)
+
+Posted on April 20, 2017    [On writing clean code](https://blog.taustation.space/blog/on-writing-clean-code/)
+
+Posted on June 13, 2017     [Writing Declarative Perl](http://blogs.perl.org/users/ovid/2017/06/writing-declarative-perl.html)
+
+Posted on February 8, 2018  [On writing clean code … for combat](https://blog.taustation.space/blog/on-writing-clean-code-for-combat/)
+
+Posted on April 20, 2018    [Extending Economic Exchange Conditions](https://blog.taustation.space/blog/extending-economic-exchange-conditions/)
+
+[Modeling a Universe in Perl](http://www.perlconference.us/tpc-2017-dc/talks/#modeling_a_universe_in_perl)
+[Video](https://www.youtube.com/watch?v=UmLwYLSmTSs)
+
+-------------------------------------------------
+
+-> The End. Qs <-
+
+1) Use JT Smith's [Ouch](http://search.cpan.org/~rizen/Ouch-0.0500/lib/Ouch.pm) module for exceptions!!!
+
+2) Purchase Mr. Curtis Poe's Books (new)
+      Perl Hacks
+      Beginning Perl
+   Hang out at Tau Station
+   Blogs (blogs.perl.org/users/ovid/) and (blog.taustation.space/blog/)
+
+3) Complete code will be on the MadMongers' github page
+     [MadMongers/09-2018-EconomicExchange](https://github.com/MadMongers/09-2018-EconomicExchange)
+
+My Professional Bull Riders flack jacket sponsors are:
+     [The Game Crafter](https://www.thegamecrafter.com)       Make your *dream* Board Game come TRUE
+     [Table Top Events](https://tabletop.events)       Your *next* Convention Management System (in the cloud)
+     [Twit.tv](https://twit.tv)                If it has a chip in it, we'll be talking about it
+
