@@ -8,8 +8,11 @@ run.pl is a sample program ( $perl run.pl )
 
 To see filter output
 $ perl -d run.pl
+
 >n
+
 >s
+
 list the code of the lib/Purchase.pm your favorite way
 
 --
