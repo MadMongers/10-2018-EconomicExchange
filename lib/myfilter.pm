@@ -42,7 +42,7 @@ sub import {
           $found = 1; 
           my $first_time = 1;
           $first_in_rule_group = $i;
-          $_ = "(sub {\n my \@behaviors;\nmy \$fsa = FSA::Rules->new(\n";
+          $_ = "(sub {\nmy \@behaviors;\nmy \$fsa = FSA::Rules->new(\n";
         }
         if ($found) {
           if (/;\s*\z/) {
@@ -58,14 +58,14 @@ sub import {
 
              my $k = $i-1;
 
-             $_ = "begin => {\ndo => sub {\nmy \$state = shift;\n\$state->result( begin_trans() );\n},\n},\n\nend => {\ndo => sub {\nmy \$state = shift;\n \$state->result( end_trans() );\n},\n},\n\n); # end of FSA::Rules->new()\n";
-             $_ .= "\@behaviors = ($str);\ntry {\nfor my \$j ($first_in_rule_group..$k) {\n\$fsa->curr_state(\"step\$j\");\nsay \$fsa->curr_state->name;\nmy \$label = \$fsa->curr_state->label;\n}\n}";
-             $_ .= "catch {\ndie \$_; # rethrow\n};\nreturn 1;\n} # end of anonymous sub\n)->(),\n$save\n";
+             $_ = "begin => {\n  do => sub {\n    my \$state = shift;\n    \$state->result( begin_trans() );\n  },\n},\n\nend => {\n  do => sub {\n    my \$state = shift;\n    \$state->result( end_trans() );\n  },\n},\n\n); # end of FSA::Rules->new()\n";
+             $_ .= "  \@behaviors = ($str);\n  try {\n    for my \$j ($first_in_rule_group..$k) {\n    \$fsa->curr_state(\"step\$j\");\n    say \$fsa->curr_state->name;\n    my \$label = \$fsa->curr_state->label;\n    }\n  }";
+             $_ .= " catch {\n    die \$_; # rethrow\n  };\n  return 1;\n} # end of anonymous sub\n)->(),\n$save\n";
           } elsif (/\b(?<post_trans>FAILURE|ALWAYS|ASSERT)\(\s*(?<func>\w.*?)\(\s*(?<args>.*)\)\s*\)\s*\,\s*\z/) {
              my $argz = _make_args($+{args});
-             $_  = "step$i => {\ndo => sub {\nmy \$rc = $+{func}";
+             $_  = "step$i => {\n  do => sub {\n    my \$rc = $+{func}";
              $_ .= "($argz);\n";
-             $_ .= "my \$state = shift;\n\$state->result(\$rc);\n},\n},\n";
+             $_ .= "    my \$state = shift;\n    \$state->result(\$rc);\n  },\n},\n";
              $behaves[$i] = $+{post_trans};
              $i++;
           } elsif (   /\b(?<func>\w.*?)\(\s*(?<args>.*)\)/   ) {
@@ -73,7 +73,7 @@ sub import {
              s/,\Z//;
              chomp;
              my $temp = $_;
-             $_ = "\nstep$i => {\ndo => sub {\nmy \$rc = $temp;\nmy \$state = shift;\n\$state->result(\$rc);\n},\n},\n";
+             $_ = "\nstep$i => {\ndo => sub {\n    my \$rc = $temp;\n    my \$state = shift;\n    \$state->result(\$rc);\n  },\n},\n";
              $behaves[$i] = undef;
              $i++;
           } else {

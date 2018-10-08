@@ -15,7 +15,7 @@
    )->attempt;
 *========================================================*
 My last presentation on this stuff went over like a lead
-ballon. Nobody grooved on some of the Ovid's specific stuff.
+ballon. Nobody grooved on the Tau Station specific stuff.  
 But creating a business transaction, NOT just a SQL 
 transaction, is important.  Lets try migrate this to the 
 real world.  And learn about FSA::Rules in the process.
@@ -23,9 +23,6 @@ real world.  And learn about FSA::Rules in the process.
 -------------------------------------------------
 
 ->  Anonymous Sub Routine(s) Will Help <-
-
-sub PurchaseStuffFromGameCrafter { 1 };
-sub Steps { say "steps"; return 2 };
 
 PurchaseStuffFromGameCrafter( 
       'arg1',
@@ -36,6 +33,7 @@ PurchaseStuffFromGameCrafter(
 *Turns into*
 
 *Note*:   sub {my @x; say "anon steps"; return 99}  # is a ref to a sub
+
 PurchaseStuffFromGameCrafter( 
       'arg1',
       'arg2', 
@@ -43,7 +41,8 @@ PurchaseStuffFromGameCrafter(
 )->attempt;
 
 *========================================================*
-This time I'm going to use anonymous sub routines.
+This time I'm going to use anonymous sub routines
+as the output of my source filter.
 
 -------------------------------------------------
 
@@ -65,18 +64,17 @@ Kept on searching
 
 -------------------------------------------------
 
-->  I'll use FSA::Rules. Example in POD  <-
+->  FSA::Rules. Example in POD  <-
 
   my $fsa = FSA::Rules->new(
      ping => {
          do => sub { print "ping!\n";
                      my $state = shift;
-                     $state->result('pong');
+                     $state->result('pong');      # JE: overkill because of 'rules'
                      $state->machine->{count}++;
          },
-         rules => [
-             game_over => sub { shift->machine->{count} >= 20 },
-             pong      => sub { shift->result eq 'pong' },
+         rules =>[ game_over => sub { shift->machine->{count} >= 20 },
+                   pong      => sub { shift->result eq 'pong'       },
          ],
      },
      pong => {
@@ -168,42 +166,8 @@ I'll tack on a begin and end
    return 1;
 
   } # end of anonymous sub
- )->() # call anonymous sub 
+ )->() # execute anonymous sub 
 )->attempt; # end of PurchaseStuffFromGameCrafter argument list
-
--------------------------------------------------
-
-->  jimE's rules  <-
-
-We're keeping this simple
-1) each step defined on a single line in the original source.
-    (probably have to change PerlTidy for 80+ character lines)
-2) The Behavior ASSERTions are on the top.
-3) The Behavior FAILUREs and ALWAYSs are on the bottom.
-3) No more dispatching subroutine/method names to the correct module.
-    (i.e. Wallet will not be resolved )
-           my $asset = 'WALLET';
-           my $package_base = 'Veure::Economy::Asset::';
-           my $assetpackage = $package_base . $asset;
-    (This be your opportunity) 
-4) If an exception is caught (Try::Tiny), just gonna rethrow it!
-     die $_; # rethrow
-     Note: JT Smith's Ouch.pm is kool for creating exceptions.
-5) Individual *steps* will NOT be constructors (Ovid land)
-6) Your project needs to create it's own begin and end transaction
-   subroutines.
-
--------------------------------------------------
-
-->  Disclaimers  <-
-
-1) Try::Tiny and FSA::Rules don't have 'import' methods so I couldn't create
-   one use/include package. (i.e. Modern::Perl)
-
-2) 'Steps' must be an last argument to another subroutine/method.
-   Otherwise the source filter will create a syntax error.
-
-3) Note: Filter::Util::Call does NOT play fair with HEREDOCs
 
 -------------------------------------------------
 
@@ -239,17 +203,52 @@ These behaviors alter the flow of steps:
 
 -------------------------------------------------
 
+->  jimE's rules  <-
+
+We're keeping this simple
+1) each step defined on a single line in the original source.
+    (probably have to change PerlTidy for 80+ character lines)
+2) The Behavior ASSERTions are on the top.
+3) The Behavior FAILUREs and ALWAYSs are on the bottom.
+3) No more dispatching subroutine/method names to the correct module.
+    (i.e. Wallet will not be resolved )
+           my $asset = 'WALLET';
+           my $package_base = 'Veure::Economy::Asset::';
+           my $assetpackage = $package_base . $asset;
+    (This be your opportunity) 
+4) If an exception is caught (Try::Tiny), just gonna rethrow it!
+     die $_; # rethrow
+     Note: JT Smith's Ouch.pm is kool for creating exceptions.
+5) Individual *steps* will *NOT* be constructors (Ovid land)
+6) Your project needs to create it's own begin and end transaction
+   subroutines.
+
+-------------------------------------------------
+
+->  Disclaimers  <-
+
+1) Try::Tiny and FSA::Rules don't have 'import' methods so I couldn't create
+   one use/include package. (i.e. Modern::Perl)
+
+2) 'Steps' must be an last argument to another subroutine/method.
+   Otherwise the source filter will create a syntax error.
+
+3) Note: Filter::Util::Call does NOT play fair with HEREDOCs
+
+-------------------------------------------------
+
 ->  Future Version Will ...  <-
 
 1) Will create another filter to handle
       my $rc = Steps(
+                  'arg1',
                   one('stuff'),
                   two('more stuff'),   # Chuck Barris
                );
 
    Merging the two filters will be an opportunity.
    Maybe a *Stepsa* (argument) and *Stepsp* (procedure)
-   for the stings to search for.
+   for the 'string's to be search for.
 
 -------------------------------------------------
 
@@ -269,11 +268,11 @@ Posted on April 20, 2018    [Extending Economic Exchange Conditions](https://blo
 
 -------------------------------------------------
 
--> The End. Qs <-
+-> *The End. Questions?????* <-
 
 1) Use JT Smith's [Ouch](http://search.cpan.org/~rizen/Ouch-0.0500/lib/Ouch.pm) module for exceptions!!!
 
-2) Purchase Mr. Curtis Poe's Books (new)
+2) Purchase Mr. Curtis Poe's Books
       Perl Hacks
       Beginning Perl
    Hang out at Tau Station
