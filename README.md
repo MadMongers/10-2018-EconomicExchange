@@ -16,6 +16,7 @@ list the code of the lib/Purchase.pm your favorite way
 main::(run.pl:6):	my $clone = PurchaseClones->new;
 
   DB<1> n
+  
 main::(run.pl:7):	$clone->purchase_clone;
 
 DB<1> s
