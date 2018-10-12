@@ -104,11 +104,9 @@ sub func2 { say "\tfunc2"; 1 }
 sub testeee {
   my ($self) = @_;
     
-  my $exchange = $self->new_exchange(
-    Steps(
+  my $exchange = Steps(
               func1( 0, 1, 2, 3, 4, 5),
-              func2( 0, 1, 2, 3, 4, 5),
-     ),
+       ALWAYS(func2( 0, 1, 2, 3, 4, 5)),
     );
 }
 

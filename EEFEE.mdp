@@ -10,7 +10,7 @@
       'arg2',
       Steps(
                   one('stuff'),
-                  two('more stuff'),   # Chuck Barris
+                  two('more stuff'),
       ),
    )->attempt;
 *========================================================*
@@ -27,7 +27,8 @@ real world.  And learn about FSA::Rules in the process.
 PurchaseStuffFromGameCrafter( 
       'arg1',
       'arg2', 
-      Steps(),
+      Steps(
+      ),
 )->attempt;
 
 *Turns into*
@@ -70,7 +71,7 @@ Kept on searching
      ping => {
          do => sub { print "ping!\n";
                      my $state = shift;
-                     $state->result('pong');      # JE: overkill because of 'rules'
+                     $state->result('pong');
                      $state->machine->{count}++;
          },
          rules =>[ game_over => sub { shift->machine->{count} >= 20 },
@@ -143,7 +144,7 @@ Kept on searching
 ); # end of FSA::Rules->new()
 
 *========================================================*
-I'll tack on a begin and end
+I'll tack on a begin and end *states*
 
 -------------------------------------------------
 
@@ -171,7 +172,7 @@ I'll tack on a begin and end
 
 -------------------------------------------------
 
-->  Future Version Will Handle *Behaviors* <-
+->  Current Version Does Handle *Behaviors* <-
 
    PurchaseSomeStuffFromGameCrafter(
       'arg1',
@@ -237,18 +238,33 @@ We're keeping this simple
 
 -------------------------------------------------
 
-->  Future Version Will ...  <-
+->  The Source Filter Will ...  <-
 
-1) Will create another filter to handle
-      my $rc = Steps(
-                  'arg1',
-                  one('stuff'),
-                  two('more stuff'),   # Chuck Barris
-               );
+Handle this format of a procedure like call
 
-   Merging the two filters will be an opportunity.
-   Maybe a *Stepsa* (argument) and *Stepsp* (procedure)
-   for the 'string's to be search for.
+my $rc = Steps(
+            'arg1',
+            one('stuff'),
+            two('more stuff'),
+         );
+
+*========================================================*
+The assignment statement before the 'Steps(' trips
+the flag.
+
+-------------------------------------------------
+
+->  Use Template(s) For Your Coding  <-
+
+Otherwise your amount of chanting will increase.
+AND
+You will be spending time if the debugger to
+see what the source filter created.
+
+ex: 
+    perl -d  run.pl
+    f lib/PurchaseClones.pm
+    |  l 1-400
 
 -------------------------------------------------
 
