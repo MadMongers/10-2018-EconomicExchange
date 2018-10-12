@@ -31,6 +31,9 @@ sub Clone     { say "\tClone";     1 };
 sub Stats     { say "\tStats";     1 };
 sub Inventory { say "\tInventory"; 1 };
 sub Event     { say "\tEvent";     1 };
+sub begin_trans {};
+sub end_trans {};
+
 
 sub purchase_clone {
    say 'purchase_clone';
@@ -42,11 +45,11 @@ sub purchase_clone {
       success_message => 'You have purchased a new clone',
       failure_message => 'You could not purchase a new clone',
       Steps(
-                  Location( $self      => is_in_area   => 'clonevat'              ),
-                  Wallet(   $self      => pay          => $self->price('cloning') ),
-                  Clone(    $self      => gestate      => $self->station_area     ),
-         FAILURE( Wallet(   $character => remove       => $bet_amount ) ),
-         ALWAYS(  Wallet( $character => show_balance ) ),
+                  Location( $self      => is_in_area  => 'clonevat'              ),
+                  Wallet(   $self      => pay         => $self->price('cloning') ),
+                  Clone(    $self      => gestate     => $self->station_area     ),
+         FAILURE( Wallet(   $character => remove      => $bet_amount ) ),
+         ALWAYS(  Wallet( $character => 'show_balance' ) ),
       ),
    )->attempt;
 }
@@ -60,11 +63,11 @@ sub purchase_clone2 {
       success_message => 'You have purchased a new clone',
       failure_message => 'You could not purchase a new clone',
       Steps(
-                  Location( $self      => is_in_area   => 'clonevat'              ),
-                  Wallet(   $self      => pay          => $self->price('cloning') ),
-                  Clone(    $self      => gestate      => $self->station_area     ),
-         FAILURE( Wallet(   $character => remove       => $bet_amount ) ),
-         ALWAYS(  Wallet( $character => show_balance ) ),
+                  Location( $self      => is_in_area  => 'clonevat'              ),
+                  Wallet(   $self      => pay         => $self->price('cloning') ),
+                  Clone(    $self      => gestate     => $self->station_area     ),
+         FAILURE( Wallet(   $character => remove      => $bet_amount ) ),
+         ALWAYS(  Wallet( $character => 'show_balance') ),
       ),
    )->attempt;
 }
@@ -103,8 +106,8 @@ sub testeee {
     
   my $exchange = $self->new_exchange(
     Steps(
-              func1( 1, 2, 3, 4),
-              func2( 1, 2, 3, 4),
+              func1( 0, 1, 2, 3, 4, 5),
+              func2( 0, 1, 2, 3, 4, 5),
      ),
     );
 }
