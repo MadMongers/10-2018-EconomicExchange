@@ -8,7 +8,7 @@ sub import {
   my ($self,)=@_;
   my ($found)=0;
   my $i=0;
-  my $first_in_rule_group;
+  my $first_in_group;
   my $stepsp=0;
   my @behaves;
 
@@ -19,24 +19,31 @@ sub import {
       if (($status = filter_read()) > 0) {
         if ($found == 0 and /Steps\(/) { 
           $found = 1; 
-          $first_in_rule_group = $i;
- #          $_ = "(sub {\nmy \@behaviors;\nmy \$fsa = FSA::Rules->new(\n";
+          $first_in_group = $i;
         }
         if ($found) {
           if (/Steps\(/) {
+            my $string;
 	    if (/=\s*Steps\(/) {
               s/Steps\(//;
 	      chomp;
 	      $stepsp = 1;
-	      $_ = "#help\n" . $_
+	      $string = $_;
 	    } else {
-	      $_ = '';
+	      $string = '';
 	    }
-            $_ .= "(sub {\nmy \@behaviors;\nmy \$fsa = FSA::Rules->new(\n";
+#==============================================================================
+            my $stuff0 = <<"STUFF0";
+(sub {
+   my \@behaviors;
+   my \$fsa = FSA::Rules->new(
+STUFF0
+	     $_ = $string . $stuff0;
+#==============================================================================
 	  } elsif (/;\s*\z/) {
             $found = 0;
             my $save = $_;
-            my @sublist = @behaves[$first_in_rule_group..($i-1)];
+            my @sublist = @behaves[$first_in_group..($i-1)];
             my $str;
             for my $l (@sublist) {
               if (not(defined($l))) { $str .= 'undef, '; } 
@@ -44,11 +51,17 @@ sub import {
             }
 
             my $k = $i-1;
+#==============================================================================
+            my $stuff1 = <<"STUFF1";
+); # end of FSA::Rules->new()
+\@behaviors = ($str);
+return _stEps(\$fsa, $first_in_group, $k,\\\@behaviors);
+} # end of anonymous sub
+)->()
+STUFF1
+	     $_ = $stuff1;
+#==============================================================================
 
-            $_ = "begin => {\n  do => sub {\n    my \$state = shift;\n    \$state->result( begin_trans() );\n  },\n},\n\nend => {\n  do => sub {\n    my \$state = shift;\n    \$state->result( end_trans() );\n  },\n},\n\n); # end of FSA::Rules->new()\n";
-             $_ .= "  \@behaviors = ($str);\n  try {\n    \$fsa->curr_state('begin');\n    for my \$j ($first_in_rule_group..$k) {\n    \$fsa->curr_state(\"step\$j\");\n    }\n    \$fsa->curr_state('end');\n  }\n";
-
-            $_ .= " catch {\n    die \$_; # rethrow\n  };\n  return 1;\n} # end of anonymous sub\n)->()";
 	    if ($stepsp) {
 	      $_ .= ";\n";
 	      $stepsp = 0;
@@ -56,8 +69,17 @@ sub import {
 	      $_ .= ",\n$save\n";
 	    }
           } elsif (/(?<post_trans>FAILURE|ALWAYS|ASSERT)(\()(?<rest>\N.*)(\))\s*,\s*\z/) {
-            $_  = "step$i => {\n  do => sub {\n    my \$rc = $+{rest};\n" .
-                  "    my \$state = shift;\n    \$state->result(\$rc);\n  },\n},\n";
+#==============================================================================
+            my $stuff2 = <<"STUFF2";
+   step$i => {
+      do => sub {
+         my \$state = shift;
+         \$state->result( $+{rest} );
+      },
+   },
+STUFF2
+             $_ = $stuff2;
+#==============================================================================
             $behaves[$i] = $+{post_trans};
             $i++;
           } elsif (/\(.*(\))\s*,\s*\z/) {
@@ -65,7 +87,17 @@ sub import {
             s/,\Z//;
             chomp;
             my $temp = $_;
-            $_ = "\nstep$i => {\ndo => sub {\n    my \$rc = $temp;\n    my \$state = shift;\n    \$state->result(\$rc);\n  },\n},\n";
+#==============================================================================
+             my $stuff3 = <<"STUFF3";
+   step$i => {
+      do => sub {
+         my \$state = shift;
+         \$state->result($temp);
+      },
+   },
+STUFF3
+	     $_ = $stuff3;
+#==============================================================================
             $behaves[$i] = undef;
             $i++;
           } else {
@@ -74,6 +106,77 @@ sub import {
              }
           }
         }
+        if ($found == 0 and /\A1;/) { 
+           my $save = $_;
+
+#==============================================================================
+           my  $stuff4 = <<"STUFF4";
+sub _stEps {
+   my (\$fsa, \$to, \$from, \$ra_behaviors) =  \@_;
+   my (\$rc, \$pos1) = (1, 0);
+   try {
+     begin_trans();
+     my \$rc = 1;
+     for my \$j (\$to..\$from) {
+       \$pos1 = \$j;
+       if ((defined(\$\$ra_behaviors[\$j])) and (\$\$ra_behaviors[\$j] eq 'ASSERT')) {
+	 \$fsa->curr_state("step\$j");
+         \$rc = \$fsa->last_result("step\$j");
+#	 say \$j; 
+         return if (not (\$rc));   # an ASSERT w/ FALSE return code, runaway
+       }
+       else { last; }
+     }
+     my \$pos2;
+     for my \$j (\$pos1..\$from) {
+       \$pos2 = \$j;
+       if ( not (defined(\$\$ra_behaviors[\$j])) ) {
+	 \$fsa->curr_state("step\$j");
+         \$rc = \$fsa->last_result("step\$j");
+#	 say \$j; 
+         last if (not (\$rc));
+       } elsif ((defined(\$\$ra_behaviors[\$j])) and (\$\$ra_behaviors[\$j] eq 'ALWAYS')) {
+	 \$fsa->curr_state("step\$j");
+         \$rc = \$fsa->last_result("step\$j");
+#	 say \$j; 
+         last if (not (\$rc));
+       }
+     }
+     # have a FALSE return code
+     if (not (\$rc)) {
+       # hit all FAILUREs, starting where ASSERTs left off
+       for my \$j (\$pos1..\$from) {
+         if ((defined(\$\$ra_behaviors[\$j])) and (\$\$ra_behaviors[\$j] eq 'FAILURE')) {
+	   \$fsa->curr_state("step\$j");
+           \$rc = \$fsa->last_result("step\$j");
+#	   say \$j; 
+           # what do you do with a bad return code??
+         }
+       }
+       # find all ALWAYS that were not executed
+       # we left off at \$pos2
+       \$pos2++;
+       for my \$j (\$pos2..\$from) {
+         if ((defined(\$\$ra_behaviors[\$j])) and (\$\$ra_behaviors[\$j] eq 'ALWAYS')) {
+	   \$fsa->curr_state("step\$j");
+           \$rc = \$fsa->last_result("step\$j");
+#	   say \$j; 
+           # what do you do with a bad return code??
+         }
+       }
+     }
+     end_trans();
+   }
+   catch {
+     roll_back();
+     die \$_; # rethrow
+   };
+   return 1;
+} 
+STUFF4
+           $_ = "$stuff4\n#end\n" . $save;
+#==============================================================================
+         }
       }
       $status;  # return status;
     } 

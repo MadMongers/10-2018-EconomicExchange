@@ -1,0 +1,12 @@
+   my $exchange = new_exchange(
+      slug            => 'purchase-clone',
+      success_message => 'You have purchased a new clone',
+      failure_message => 'You could not purchase a new clone',
+      Steps(
+                  Location( $self      => is_in_area  => 'clonevat'              ),
+                  Wallet(   $self      => pay         => $self->price('cloning') ),
+                  Clone(    $self      => gestate     => $self->station_area     ),
+         FAILURE( Wallet(   $character => remove      => $bet_amount ) ),
+         ALWAYS(  Wallet( $character => 'show_balance') ),
+      ),
+   )->attempt;

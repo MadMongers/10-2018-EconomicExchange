@@ -1,0 +1,4 @@
+  my $exchange = Steps(
+              func1( 0, 1, 2, 3, 4, 5),
+       ALWAYS(func2( 0, 1, 2, 3, 4, 5)),
+    );

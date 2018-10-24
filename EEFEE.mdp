@@ -12,7 +12,7 @@
                   one('stuff'),
                   two('more stuff'),
       ),
-   )->attempt;
+   );
 *========================================================*
 My last presentation on this stuff went over like a lead
 ballon. Nobody grooved on the Tau Station specific stuff.  
@@ -28,8 +28,9 @@ PurchaseStuffFromGameCrafter(
       'arg1',
       'arg2', 
       Steps(
+            one('stuff'),
       ),
-)->attempt;
+);
 
 *Turns into*
 
@@ -38,11 +39,11 @@ PurchaseStuffFromGameCrafter(
 PurchaseStuffFromGameCrafter( 
       'arg1',
       'arg2', 
-      (sub {my @x; say "anon steps"; return 99})->(), 
-)->attempt;
+      (sub { one('stuff'); })->(), 
+);
 
 *========================================================*
-This time I'm going to use anonymous sub routines
+This time I'm going to use anonymous subroutines
 as the output of my source filter.
 
 -------------------------------------------------
@@ -86,6 +87,9 @@ Kept on searching
   );
   $fsa->start;
   $fsa->switch until $fsa->at('game_over');
+*========================================================*
+There is plenty more to FSA::Rules. I'm just showing the a
+small portion of the stuff I used.  
 
 -------------------------------------------------
 
@@ -98,7 +102,7 @@ Kept on searching
              one('stuff'),
              two('more stuff'),
       ),
-   )->attempt;
+   );
 
 -------------------------------------------------
 
@@ -106,73 +110,56 @@ Kept on searching
 
 ( sub {
    my $fsa = FSA::Rules->new(
-
    *step0* => {
       do => sub {
-         my $rc = *one*();
+         my $rc = *one*('stuff');
          my $state = shift;
          $state->result($rc);
       },
    },
-
    *step1* => {
       do => sub {
-         my $rc = *two*();
+         my $rc = *two*('more stuff');
          my $state = shift;
          $state->result($rc);
       },
    },
+   ); # end of FSA::Rules->new()
+   @behaviors = (undef, undef, );
+   return stEps($fsa, 0, 4,\@behaviors);
+   } # end of anonymous sub
+)->()
+);
 
 -------------------------------------------------
 
-->  My source code filter will... Part 2 <-
+->  My source code filter will append to the module ... Part 2 <-
 
-   *begin* => {
-      do => sub {
-         my $state = shift;
-         $state->result( begin_trans() );
-      },
-   },
-
-   *end* => {
-      do => sub {
-         my $state = shift;
-         $state->result( end_trans() );
-      },
-   },
-
-); # end of FSA::Rules->new()
-
-*========================================================*
-I'll tack on a begin and end *states*
-
--------------------------------------------------
-
-->  My source code filter will... Part 3 <-
-
-# No testing of return codes of individual steps in this version
-
-   my @behaviors = ( undef, undef );
+# No testing of return codes of individual steps in my initial version
+sub Steps { ... 
    *try* {
-      $fsa->curr_state('begin');
-      for my $j (0..1) {              # loop thru user's steps
+      begin_trans();
+      for my $j ($beg..$end) {
         $fsa->curr_state("step$j");
       }
-      $fsa->curr_state('end');
+      end_trans();
    }
    *catch* {
+      roll_back();
       die $_; # rethrow
    };
-
    return 1;
+}
+*========================================================*
+If your modules has more than one 'Steps', why insert the
+logic for handling the State Machine more than once.
 
-  } # end of anonymous sub
- )->() # execute anonymous sub 
-)->attempt; # end of PurchaseStuffFromGameCrafter argument list
+To pull this off, I'm searching for '1;' at the end of the module. 
+So current version only works with modules.
 
 -------------------------------------------------
 
-->  Current Version Does Handle *Behaviors* <-
+->  Will Handle *Behaviors* <-
 
    PurchaseSomeStuffFromGameCrafter(
       'arg1',
@@ -184,7 +171,7 @@ I'll tack on a begin and end *states*
          *FAILURE*( func3() ),
          *ALWAYS*(  func4() ),
       ),
-   )->attempt;
+   );
 
 -------------------------------------------------
 
@@ -207,11 +194,11 @@ These behaviors alter the flow of steps:
 ->  jimE's rules  <-
 
 We're keeping this simple
-1) each step defined on a single line in the original source.
+0) Works only with modules. Looks for '1;' before EOF
+1) Each step defined on a single line in the original source.
     (probably have to change PerlTidy for 80+ character lines)
 2) The Behavior ASSERTions are on the top.
-3) The Behavior FAILUREs and ALWAYSs are on the bottom.
-3) No more dispatching subroutine/method names to the correct module.
+3) You'll have to import subroutines from other modules
     (i.e. Wallet will not be resolved )
            my $asset = 'WALLET';
            my $package_base = 'Veure::Economy::Asset::';
@@ -220,21 +207,21 @@ We're keeping this simple
 4) If an exception is caught (Try::Tiny), just gonna rethrow it!
      die $_; # rethrow
      Note: JT Smith's Ouch.pm is kool for creating exceptions.
-5) Individual *steps* will *NOT* be constructors (Ovid land)
-6) Your project needs to create it's own begin and end transaction
+5) In my sample code, individual *steps* will *NOT* be constructors (Ovid land)
+6) Your project needs to create it's own begin, end and rollback transaction
    subroutines.
+7) Subroutines used in a step return FALSE for bad, else everything is ok.
 
 -------------------------------------------------
 
 ->  Disclaimers  <-
 
-1) Try::Tiny and FSA::Rules don't have 'import' methods so I couldn't create
+1) FSA::Rules does NOT have 'import' methods so I did NOT create
    one use/include package. (i.e. Modern::Perl)
 
 2) 'Steps' must be an last argument to another subroutine/method.
    Otherwise the source filter will create a syntax error.
 
-3) Note: Filter::Util::Call does NOT play fair with HEREDOCs
 
 -------------------------------------------------
 
@@ -257,14 +244,29 @@ the flag.
 ->  Use Template(s) For Your Coding  <-
 
 Otherwise your amount of chanting will increase.
+
 AND
-You will be spending time if the debugger to
-see what the source filter created.
+
+You will be spending time in the debugger to see what the source filter created.
+
 
 ex: 
     perl -d  run.pl
     f lib/PurchaseClones.pm
     |  l 1-400
+
+-------------------------------------------------
+
+->  Post Mortem  <-
+
+What I used of FSA::Rules did not give a great advantage. 
+I would got back to passing Array of Arrays and use
+anonymous subroutines.
+
+my $argz1 = [
+        [ 'ASSERT', (sub {my @x; say "anon steps"; return 99}), ],
+        ...
+       ];
 
 -------------------------------------------------
 
@@ -284,6 +286,21 @@ Posted on April 20, 2018    [Extending Economic Exchange Conditions](https://blo
 
 -------------------------------------------------
 
+-> A 'Modeling a Universe' update.
+
+At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
+1) Did not mention Behaviors
+2) He said Tau Station does not do any logging
+   But
+     Any Economic Exchange that fails creates a
+     'Error Report' of the entire 'Steps' call
+      with field filled in instead of variable names.
+      [ Day 1, 41st minute ]
+     Probably why he uses constructors, return an
+     object that has more than just a return code.
+
+-------------------------------------------------
+
 -> *The End. Questions?????* <-
 
 1) Use JT Smith's [Ouch](http://search.cpan.org/~rizen/Ouch-0.0500/lib/Ouch.pm) module for exceptions!!!
@@ -298,7 +315,7 @@ Posted on April 20, 2018    [Extending Economic Exchange Conditions](https://blo
      [MadMongers/09-2018-EconomicExchange](https://github.com/MadMongers/09-2018-EconomicExchange)
 
 My Professional Bull Riders flack jacket sponsors are:
-     [The Game Crafter](https://www.thegamecrafter.com)       Make your *dream* Board Game come TRUE
-     [Table Top Events](https://tabletop.events)       Your *next* Convention Management System (in the cloud)
+     [The Game Crafter](https://www.thegamecrafter.com)       Make your *DREAM* Board Game come TRUE
+     [Table Top Events](https://tabletop.events)       Your *NEXT* Convention Management System (in the cloud)
      [Twit.tv](https://twit.tv)                If it has a chip in it, we'll be talking about it
 
