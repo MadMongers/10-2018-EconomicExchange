@@ -15,7 +15,7 @@
    );
 *========================================================*
 My last presentation on this stuff went over like a lead
-ballon. Nobody grooved on the Tau Station specific stuff.  
+ballon. Nobody grooved on the Tau Station flavored stuff.  
 But creating a business transaction, NOT just a SQL 
 transaction, is important.  Lets try migrate this to the 
 real world.  And learn about FSA::Rules in the process.
@@ -23,6 +23,7 @@ real world.  And learn about FSA::Rules in the process.
 -------------------------------------------------
 
 ->  Anonymous Sub Routine(s) Will Help <-
+
 
 PurchaseStuffFromGameCrafter( 
       'arg1',
@@ -44,7 +45,7 @@ PurchaseStuffFromGameCrafter(
 
 *========================================================*
 This time I'm going to use anonymous subroutines
-as the output of my source filter.
+as part of the output of my source filter.
 
 -------------------------------------------------
 
@@ -95,6 +96,7 @@ small portion of the stuff I used.
 
 ->  Lets remember my code <-
 
+
    PurchaseStuffFromGameCrafter(
       'arg1',
       'arg2',
@@ -135,8 +137,9 @@ small portion of the stuff I used.
 
 ->  My source code filter will append to the module ... Part 2 <-
 
-# No testing of return codes of individual steps in my initial version
-sub Steps { ... 
+# No testing of return codes of individual steps in my initial coding
+
+sub stEps { ... 
    *try* {
       begin_trans();
       for my $j ($beg..$end) {
@@ -161,6 +164,7 @@ So current version only works with modules.
 
 ->  Will Handle *Behaviors* <-
 
+
    PurchaseSomeStuffFromGameCrafter(
       'arg1',
       'arg2',
@@ -176,6 +180,7 @@ So current version only works with modules.
 -------------------------------------------------
 
 ->  Behaviors <-
+
 
 Stolen from Curtis 'Ovid' Poe
 
@@ -210,22 +215,24 @@ We're keeping this simple
 5) In my sample code, individual *steps* will *NOT* be constructors (Ovid land)
 6) Your project needs to create it's own begin, end and rollback transaction
    subroutines.
-7) Subroutines used in a step return FALSE for bad, else everything is ok.
+7) Subroutines used in a step return FALSE for bad, else everything is TRUE.
 
 -------------------------------------------------
 
 ->  Disclaimers  <-
 
+
 1) FSA::Rules does NOT have 'import' methods so I did NOT create
    one use/include package. (i.e. Modern::Perl)
 
-2) 'Steps' must be an last argument to another subroutine/method.
-   Otherwise the source filter will create a syntax error.
+2) 'Steps' should be the last argument of a subroutine call.
+   I haven't tested if it is not.
 
 
 -------------------------------------------------
 
 ->  The Source Filter Will ...  <-
+
 
 Handle this format of a procedure like call
 
@@ -243,6 +250,7 @@ the flag.
 
 ->  Use Template(s) For Your Coding  <-
 
+
 Otherwise your amount of chanting will increase.
 
 AND
@@ -259,18 +267,23 @@ ex:
 
 ->  Post Mortem  <-
 
-What I used of FSA::Rules did not give a great advantage. 
-I would got back to passing Array of Arrays and use
-anonymous subroutines.
 
-my $argz1 = [
+For what I used of FSA::Rules, it did not give a great advantage. 
+I would go back to passing Array of Arrays and use anonymous subroutines.
+
+my @stepz = (
         [ 'ASSERT', (sub {my @x; say "anon steps"; return 99}), ],
         ...
-       ];
+       );
+
+New version's complete code will be on the MadMongers' github page
+     [MadMongers/11-2018-EconomicExchange](https://github.com/MadMongers/11-2018-EconomicExchange)
 
 -------------------------------------------------
 
 ->  Ovid's Communications on the topic  <-
+
+
 Posted on December 15, 2016 [The Tau Station Universe: Software](https://blog.taustation.space/blog/the-tau-station-universe-software/)
 
 Posted on April 20, 2017    [On writing clean code](https://blog.taustation.space/blog/on-writing-clean-code/)
@@ -288,16 +301,23 @@ Posted on April 20, 2018    [Extending Economic Exchange Conditions](https://blo
 
 -> A 'Modeling a Universe' update.
 
+
 At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
+
 1) Did not mention Behaviors
+
 2) He said Tau Station does not do any logging
-   But
-     Any Economic Exchange that fails creates a
-     'Error Report' of the entire 'Steps' call
-      with field filled in instead of variable names.
+
+   BUT
+
+   Any Economic Exchange that fails, creates a 'Error Report' of the entire 'Steps' call
+   with field filled in instead of variable names.
       [ Day 1, 41st minute ]
-     Probably why he uses constructors, return an
-     object that has more than just a return code.
+
+   I'll leave that for another day. 
+
+   Maybe thats why Tau Station uses constructors for individual steps.
+   Pass back an object with lots of stuff.
 
 -------------------------------------------------
 
@@ -312,10 +332,13 @@ At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
    Blogs (blogs.perl.org/users/ovid/) and (blog.taustation.space/blog/)
 
 3) Complete code will be on the MadMongers' github page
-     [MadMongers/09-2018-EconomicExchange](https://github.com/MadMongers/09-2018-EconomicExchange)
+    Version 2: FSA::Rules
+     [MadMongers/10-2018-EconomicExchange](https://github.com/MadMongers/10-2018-EconomicExchange)
+    Version 3  non FSA::Rules
+     [MadMongers/11-2018-EconomicExchange](https://github.com/MadMongers/11-2018-EconomicExchange)
 
 My Professional Bull Riders flack jacket sponsors are:
      [The Game Crafter](https://www.thegamecrafter.com)       Make your *DREAM* Board Game come TRUE
      [Table Top Events](https://tabletop.events)       Your *NEXT* Convention Management System (in the cloud)
-     [Twit.tv](https://twit.tv)                If it has a chip in it, we'll be talking about it
+
 
