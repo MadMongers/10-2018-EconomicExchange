@@ -1,53 +1,42 @@
 %title: Economic Exchange For Everyone Else
 %author: James Edwards
-%date: 2018-09-26
+%date: 2018-10-26
 
 -> Step Transactions <-
 
 
-   PurchaseStuffFromGameCrafter(
+   Purchase_Stuff_From_Game_Crafter(
       'arg1',
       'arg2',
-      Steps(
-                  one('stuff'),
-                  two('more stuff'),
+      *Steps*(
+                  *one*('stuff'),
+                  *two*('more stuff'),
       ),
    );
 *========================================================*
-My last presentation on this stuff went over like a lead
-ballon. Nobody grooved on the Tau Station flavored stuff.  
-But creating a business transaction, NOT just a SQL 
-transaction, is important.  Lets try migrate this to the 
-real world.  And learn about FSA::Rules in the process.
+Why is this important?
+
+If *Steps* is a normal subroutine, subroutine *one* and *two*
+would be excuted and *Steps* would get an array of EXPRs
+[ void content, scalar, list ]
+
+You want to control if subroutines/steps are to be excuted.
 
 -------------------------------------------------
 
-->  Anonymous Sub Routine(s) Will Help <-
+->  If you don't groove on the Tau Station flavored example  <-
 
+How about this format?
 
-PurchaseStuffFromGameCrafter( 
-      'arg1',
-      'arg2', 
-      Steps(
+my $rc = Steps(
             one('stuff'),
-      ),
-);
+            two('more stuff'),
+         );
 
-*Turns into*
-
-*Note*:   sub {my @x; say "anon steps"; return 99}  # is a ref to a sub
-
-PurchaseStuffFromGameCrafter( 
-      'arg1',
-      'arg2', 
-      (sub { one('stuff'); })->(), 
-);
-
-*========================================================*
-This time I'm going to use anonymous subroutines
-as part of the output of my source filter.
 
 -------------------------------------------------
+
+->  My journey of queries  <-
 
 Kept on searching
    Tried a bunch of searches then one day
@@ -64,6 +53,46 @@ Kept on searching
              Curtis "Ovid" Poe
 
    Seems a kool place to start
+
+-------------------------------------------------
+
+-> Economic Exchange <-
+
+
+   Purchase_Stuff_From_Game_Crafter(
+      'arg1',
+      'arg2',
+      Steps(
+                  one('stuff'),
+                  two('more stuff'),
+      ),
+   );
+*========================================================*
+My last presentation on this stuff went over like a lead ballon. 
+Nobody grooved on the Tau Station flavored thoughts.  
+But creating a business transaction, NOT just a SQL transaction, is important. 
+Lets migrate this project out of Tau Station land and into your coding world.
+(In Version One, I really over thought the parsing, REGEXs and SubjectVerbObject design!!!)
+   [MadMongers/04-2018-StepTransactions](https://github.com/MadMongers/04-2018-StepTransactions)
+And learn about FSA::Rules in the process.
+
+-------------------------------------------------
+
+->  Anonymous Subroutine Will Help <-
+
+
+(sub { ... })->()  # will execute the subroutine
+
+ sub { ... },      # is a ref to a subroutine
+
+*========================================================*
+Version Two of my project wraps the FSA::Rules' 'State Machine' within
+a anonymous subroutine.
+     [MadMongers/10-2018-EconomicExchange](https://github.com/MadMongers/10-2018-EconomicExchange)
+
+Version Three of my project passes around references to
+anonymous subroutines which are the 'states'
+     [MadMongers/11-2018-EconomicExchange](https://github.com/MadMongers/11-2018-EconomicExchange)
 
 -------------------------------------------------
 
@@ -84,7 +113,7 @@ Kept on searching
          do => sub { print "pong!\n" },
          rules => [ ping => 1, ], # always goes back to ping
      },
-     game_over => { do => sub { print "Game Over\n" } }
+     game_over => { do => sub { say 'Game Over' } }
   );
   $fsa->start;
   $fsa->switch until $fsa->at('game_over');
@@ -97,7 +126,7 @@ small portion of the stuff I used.
 ->  Lets remember my code <-
 
 
-   PurchaseStuffFromGameCrafter(
+   Purchase_Stuff_From_Game_Crafter(
       'arg1',
       'arg2',
       Steps(
@@ -127,8 +156,8 @@ small portion of the stuff I used.
       },
    },
    ); # end of FSA::Rules->new()
-   @behaviors = (undef, undef, );
-   return stEps($fsa, 0, 4,\@behaviors);
+   @behaviors = (undef, undef, );         # to be discussed later on!
+   return STEPS($fsa, 0, 4,\@behaviors);
    } # end of anonymous sub
 )->()
 );
@@ -139,7 +168,7 @@ small portion of the stuff I used.
 
 # No testing of return codes of individual steps in my initial coding
 
-sub stEps { ... 
+sub STEPS { ... 
    *try* {
       begin_trans();
       for my $j ($beg..$end) {
@@ -158,14 +187,14 @@ If your modules has more than one 'Steps', why insert the
 logic for handling the State Machine more than once.
 
 To pull this off, I'm searching for '1;' at the end of the module. 
-So current version only works with modules.
+So current versions (2 & 3) only works with modules.
 
 -------------------------------------------------
 
 ->  Will Handle *Behaviors* <-
 
 
-   PurchaseSomeStuffFromGameCrafter(
+   Purchase_Some_Stuff_From_Game_Crafter(
       'arg1',
       'arg2',
       Steps(
@@ -177,10 +206,12 @@ So current version only works with modules.
       ),
    );
 
+*========================================================*
+I like Ovid's optional 'behavior' attributes. 
+
 -------------------------------------------------
 
 ->  Behaviors <-
-
 
 Stolen from Curtis 'Ovid' Poe
 
@@ -194,27 +225,30 @@ These behaviors alter the flow of steps:
 *FAILURE* – Run this step if any earlier step failed (unless an ASSERT was 
           previously failed).
 
+
 -------------------------------------------------
 
 ->  jimE's rules  <-
 
 We're keeping this simple
+
 0) Works only with modules. Looks for '1;' before EOF
+
 1) Each step defined on a single line in the original source.
     (probably have to change PerlTidy for 80+ character lines)
+
 2) The Behavior ASSERTions are on the top.
+
 3) You'll have to import subroutines from other modules
-    (i.e. Wallet will not be resolved )
-           my $asset = 'WALLET';
-           my $package_base = 'Veure::Economy::Asset::';
-           my $assetpackage = $package_base . $asset;
-    (This be your opportunity) 
+
 4) If an exception is caught (Try::Tiny), just gonna rethrow it!
      die $_; # rethrow
      Note: JT Smith's Ouch.pm is kool for creating exceptions.
+
 5) In my sample code, individual *steps* will *NOT* be constructors (Ovid land)
-6) Your project needs to create it's own begin, end and rollback transaction
-   subroutines.
+
+6) Your project needs to create it's own begin, end and rollback transaction subroutines.
+
 7) Subroutines used in a step return FALSE for bad, else everything is TRUE.
 
 -------------------------------------------------
@@ -222,10 +256,10 @@ We're keeping this simple
 ->  Disclaimers  <-
 
 
-1) FSA::Rules does NOT have 'import' methods so I did NOT create
+9) FSA::Rules does NOT have 'import' methods so I did NOT create
    one use/include package. (i.e. Modern::Perl)
 
-2) 'Steps' should be the last argument of a subroutine call.
+1) 'Steps' should be the last argument of a subroutine call.
    I haven't tested if it is not.
 
 
@@ -237,14 +271,12 @@ We're keeping this simple
 Handle this format of a procedure like call
 
 my $rc = Steps(
-            'arg1',
             one('stuff'),
             two('more stuff'),
          );
 
 *========================================================*
-The assignment statement before the 'Steps(' trips
-the flag.
+The assignment statement before the 'Steps(' trips the flag.
 
 -------------------------------------------------
 
@@ -263,6 +295,9 @@ ex:
     f lib/PurchaseClones.pm
     |  l 1-400
 
+*========================================================*
+Source code has a 'templates' directory.
+
 -------------------------------------------------
 
 ->  Post Mortem  <-
@@ -272,7 +307,7 @@ For what I used of FSA::Rules, it did not give a great advantage.
 I would go back to passing Array of Arrays and use anonymous subroutines.
 
 my @stepz = (
-        [ 'ASSERT', (sub {my @x; say "anon steps"; return 99}), ],
+        [ 'ASSERT', (sub { ... }), ],
         ...
        );
 
@@ -281,7 +316,32 @@ New version's complete code will be on the MadMongers' github page
 
 -------------------------------------------------
 
-->  Ovid's Communications on the topic  <-
+->  Anonymous Subroutines Revisited   <-
+
+Purchase_Stuff_From_Game_Crafter( 
+      'arg1',
+      'arg2', 
+      Steps(
+            ALWAYS( one('stuff')),  # overkill, but I want to show filter output
+      ),
+);
+
+*Turns into*
+
+Purchase_Stuff_From_Game_Crafter( 
+      'arg1',
+      'arg2', 
+      STEPS (
+        [ 'ALWAYS', (sub { one('stuff') }), ],
+      ),
+);
+
+*========================================================*
+My 'STEPS' subroutine will be appended to the *End Of Module*.
+
+-------------------------------------------------
+
+->  Ovid's Communications on the topic (if you choose to drink the Kool-Aid)  <-
 
 
 Posted on December 15, 2016 [The Tau Station Universe: Software](https://blog.taustation.space/blog/the-tau-station-universe-software/)
@@ -311,7 +371,7 @@ At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
    BUT
 
    Any Economic Exchange that fails, creates a 'Error Report' of the entire 'Steps' call
-   with field filled in instead of variable names.
+   with fields filled in instead of variable names.
       [ Day 1, 41st minute ]
 
    I'll leave that for another day. 
@@ -321,24 +381,28 @@ At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
 
 -------------------------------------------------
 
--> *The End. Questions?????* <-
+-> *The End.  <-
 
-1) Use JT Smith's [Ouch](http://search.cpan.org/~rizen/Ouch-0.0500/lib/Ouch.pm) module for exceptions!!!
-
-2) Purchase Mr. Curtis Poe's Books
-      Perl Hacks
-      Beginning Perl
-   Hang out at Tau Station
-   Blogs (blogs.perl.org/users/ovid/) and (blog.taustation.space/blog/)
-
-3) Complete code will be on the MadMongers' github page
-    Version 2: FSA::Rules
-     [MadMongers/10-2018-EconomicExchange](https://github.com/MadMongers/10-2018-EconomicExchange)
-    Version 3  non FSA::Rules
-     [MadMongers/11-2018-EconomicExchange](https://github.com/MadMongers/11-2018-EconomicExchange)
-
-My Professional Bull Riders flack jacket sponsors are:
-     [The Game Crafter](https://www.thegamecrafter.com)       Make your *DREAM* Board Game come TRUE
-     [Table Top Events](https://tabletop.events)       Your *NEXT* Convention Management System (in the cloud)
+Questions?  Questions?  Questions?  Questions?  Questions?
+  Questions?  Questions?  Questions?  Questions?  Questions?
+    Questions?  Questions?  Questions?  Questions?  Questions?
+      Questions?  Questions?  Questions?  Questions?  Questions?
+        Questions?  Questions?  Questions?  Questions?  Questions?
+          Questions?  Questions?  Questions?  Questions?  Questions?
+            Questions?  Questions?  Questions?  Questions?  Questions?  
+              Questions?  Questions?  Questions?  Questions?  Questions?  
+                Questions?  Questions?  Questions?  Questions?  Questions?  
+                  Questions?  Questions?  Questions?  Questions?  Questions?  
+                    Questions?  Questions?  Questions?  Questions?  Questions?  
+                      Questions?  Questions?  Questions?  Questions?  Questions?
 
 
+
+
+"My BlockChain can beat your BlockChain." Ed Bott, ZDNet
+
+Modules used
+  Moo                 # for test program's method calls
+  Try::Tiny           # can be easily be replaced
+  FSA::Rules          # only needed for Version 2
+  Filter::Util::Call

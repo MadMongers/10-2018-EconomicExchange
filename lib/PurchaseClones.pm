@@ -2,7 +2,6 @@ use strict; use warnings;
 package PurchaseClones;
 use feature 'say';
 use Moo;
-#use StepTransaction 'Steps';
 use myfilter;
 use FSA::Rules;
 use Try::Tiny;
