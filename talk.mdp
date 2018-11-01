@@ -1,0 +1,309 @@
+%title: Economic Exchange For Everyone Else
+%author: talk
+%date: 2018-10-26
+
+->  Slide 1: Step Transactions  <-
+
+This is a refactoring of my little project.
+
+This is not a wing it rehash presentation.
+You can not experience schandenfreude!!!
+
+Why is this important?
+
+If *Steps* is a normal subroutine, subroutine *one* and *two*
+would be excuted and *Steps* would get an array of EXPRs
+[ void content, scalar, list ]
+
+You want to control if and when subroutines/steps are to be excuted.
+
+-------------------------------------------------
+
+->  Slide 2: If you don't groove on the Tau Station flavored example  <-
+
+Maybe this is to your liking?
+
+-------------------------------------------------
+
+->  Slide 3: My journey of queries  <-
+
+I kept on searching for somebody else having fun with this idea
+   Tried a bunch of searches then one day
+     Multi Step Transaction
+     Business process Transaction
+       Found reference to State Machine
+
+   Perl State Machine
+     Found a StackOverflow Q. about DFA::Simple
+       Found a comment by Ovid about FSA::Rules
+         FSA::Rules
+           Authors
+             David E. Wheeler
+             Curtis "Ovid" Poe
+
+   Seems a kool place to start
+
+-------------------------------------------------
+
+->  Slide 4: Economic Exchange  <-
+
+
+My last presentation on this stuff went over like a lead ballon. 
+
+Nobody grooved on the Tau Station flavored thoughts.  
+
+But creating a business transaction, NOT just a SQL transaction, is important. 
+
+Lets migrate this project out of Tau Station land and into your coding world.
+
+(In Version One, I really over thought the parsing, REGEXs and SubjectVerbObject design!!!)
+   [MadMongers/04-2018-StepTransactions](https://github.com/MadMongers/04-2018-StepTransactions)
+
+And learn about FSA::Rules in the process.
+
+-------------------------------------------------
+
+->  Slide 5: Anonymous Subroutine Will Help <-
+
+
+(sub { ... })->()  # will execute the subroutine
+
+ sub { ... },      # is a ref to a subroutine
+
+*========================================================*
+Version Two of my project wraps the FSA::Rules' 'State Machine' within
+a anonymous subroutine.
+     [MadMongers/10-2018-EconomicExchange](https://github.com/MadMongers/10-2018-EconomicExchange)
+
+Version Three of my project passes around references to
+anonymous subroutines which are the 'states'
+     [MadMongers/11-2018-EconomicExchange](https://github.com/MadMongers/11-2018-EconomicExchange)
+
+-------------------------------------------------
+
+->  Slide 6: FSA::Rules. Example in POD  <-
+
+We have 3 states, ping, pong and game_over
+
+The 'start' method calls the first state declared.
+
+The 'switch' method catches the first rule that returns TRUE.
+
+ping will declare pong as the next state until count equal to 20
+
+pong always say ping is next
+
+There is plenty more to FSA::Rules. I'm just showing the a small portion of the stuff I used.  
+
+-------------------------------------------------
+
+->  Slide 7: Lets remember my code <-
+
+
+   Purchase_Stuff_From_Game_Crafter(
+      'arg1',
+      'arg2',
+      Steps(
+             one('stuff'),
+             two('more stuff'),
+      ),
+   );
+
+-------------------------------------------------
+
+->  Slide 8: My source code filter will... Part 1 <-
+
+I created a state for each argument to Steps.
+
+I copied the argument/subroutine call into the state.
+
+The next slide will show a simple state machine I started with.
+
+-------------------------------------------------
+
+->  Slide 9: My source code filter will append to the module ... Part 2 <-
+
+In this simple state machine
+  No testing of return codes of individual steps in my initial coding
+  No business logic to the Ecomonic Exchange
+  [ a try-catch block with a loop excuting states within a transaction wrapper ]
+
+In my inital coding I slapped the 'try-catch' block into the previous slide's 
+anonymous subroutine.
+
+My test program which has numerous Steps defined was 140 lines long. 
+
+With inserting the simple state machine to into the anonymous subroutine the 
+code balloned to 400+ lines
+
+Why insert the logic for handling the State Machine more than once.
+
+To pull this off, I'm searching for '1;' at the end of the module. 
+Current versions (2 & 3) only works with modules.
+
+-------------------------------------------------
+
+->  Slide 10: Will Handle *Behaviors* <-
+
+
+I like Ovid's optional 'behavior' attributes. 
+
+-------------------------------------------------
+
+->  Slide 11: Behaviors <-
+
+Stolen from Curtis 'Ovid' Poe
+
+These behaviors alter the flow of steps:
+
+*ASSERT*  – If this step fails, do not call any other steps for any reason.
+*ALWAYS*  – Always run this step (unless an ASSERT was previously failed).
+*FAILURE* – Run this step if any earlier step failed (unless an ASSERT was 
+          previously failed).
+
+
+-------------------------------------------------
+
+->  Slide 12: jimE's rules  <-
+
+We're keeping this simple
+
+0) Works only with modules. Looks for '1;' before EOF
+
+1) Each step defined on a single line in the original source.
+    (probably have to change PerlTidy for 80+ character lines)
+
+2) The Behavior ASSERTions are on the top.
+
+3) You'll have to import subroutines from other modules
+
+4) If an exception is caught (Try::Tiny), just gonna rethrow it!
+     die $_; # rethrow
+
+5) In my sample code, individual *steps* will *NOT* be constructors (Ovid land)
+
+6) Your project needs to create it's own begin, end and rollback transaction subroutines.
+
+7) Subroutines used in a step return FALSE for bad, else everything is TRUE.
+
+-------------------------------------------------
+
+->  Slide 13: Disclaimers  <-
+
+
+0) FSA::Rules does NOT have 'import' methods so I did NOT create
+   one use/include package. (i.e. Modern::Perl)
+
+1) 'Steps' should be the last argument of a subroutine call.
+   I haven't tested if it is not.
+
+
+-------------------------------------------------
+
+->  Slide 14: The Source Filter Will ...  <-
+
+
+Handle this format of a procedure like call
+
+my $rc = Steps(
+            one('stuff'),
+            two('more stuff'),
+         );
+
+*========================================================*
+The assignment statement before the 'Steps(' trips the flag.
+
+-------------------------------------------------
+
+->  Slide 15: Use Template(s) For Your Coding  <-
+
+
+Otherwise your amount of chanting will increase.
+
+AND
+
+You will be spending time in the debugger to see what the source filter created.
+
+
+ex: 
+    perl -d  run.pl
+    f lib/PurchaseClones.pm
+    |  l 1-400
+
+*========================================================*
+Source code has a 'templates' directory.
+
+-------------------------------------------------
+
+->  Slide 16: Post Mortem  <-
+
+
+For what I used of FSA::Rules, it did not give a great advantage. 
+I would go back to passing Array of Arrays and use anonymous subroutines.
+
+       (
+        ...
+        [ 'ASSERT', (sub { ... }), ],
+        ...
+       );
+
+New version's complete code will be on the MadMongers' github page
+                November
+     MadMongers/11-2018-EconomicExchange
+
+-------------------------------------------------
+
+->  Slide 17: Anonymous Subroutines Revisited   <-
+
+
+Version 3 will 
+
+            ALWAYS( one('stuff')),  
+
+*Turns into*
+
+        [ 'ALWAYS', (sub { one('stuff') }), ],
+
+*========================================================*
+My 'STEPS' subroutine will be appended to the *End Of Module*.
+
+-------------------------------------------------
+
+->  Slide 18: Ovid's Communications on the topic (if you choose to drink the Kool-Aid)  <-
+
+
+if you want to drink more Ovid Kool-Aid on Economic Exchange
+
+to compare to my talk.
+
+-------------------------------------------------
+
+-> Slide 19: A *'Modeling a Universe'* update.
+
+
+At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
+
+1) Did not mention Behaviors
+
+2) He said Tau Station does not do any logging
+
+   BUT
+
+   Any Economic Exchange that fails, creates a 'Error Report' of the entire 'Steps' call
+   with fields filled in instead of variable names.
+      [ Day 1, 41st minute ]
+
+   I'll leave that for another day. 
+
+   Maybe thats why Tau Station uses constructors for individual steps.
+   Pass back an object with lots of stuff.
+
+-------------------------------------------------
+
+-> Slide 20: *The End.  <-
+
+Modules used
+  Moo                 # for test program's method calls
+  Try::Tiny           # can be easily be replaced
+  FSA::Rules          # only needed for Version 2
+  Filter::Util::Call

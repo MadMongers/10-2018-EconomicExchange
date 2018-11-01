@@ -20,7 +20,7 @@ If *Steps* is a normal subroutine, subroutine *one* and *two*
 would be excuted and *Steps* would get an array of EXPRs
 [ void content, scalar, list ]
 
-You want to control if subroutines/steps are to be excuted.
+You want to control if and when subroutines/steps are to be excuted.
 
 -------------------------------------------------
 
@@ -256,7 +256,7 @@ We're keeping this simple
 ->  Disclaimers  <-
 
 
-9) FSA::Rules does NOT have 'import' methods so I did NOT create
+0) FSA::Rules does NOT have 'import' methods so I did NOT create
    one use/include package. (i.e. Modern::Perl)
 
 1) 'Steps' should be the last argument of a subroutine call.
@@ -306,7 +306,8 @@ Source code has a 'templates' directory.
 For what I used of FSA::Rules, it did not give a great advantage. 
 I would go back to passing Array of Arrays and use anonymous subroutines.
 
-my @stepz = (
+       (
+        ...
         [ 'ASSERT', (sub { ... }), ],
         ...
        );
@@ -359,7 +360,7 @@ Posted on April 20, 2018    [Extending Economic Exchange Conditions](https://blo
 
 -------------------------------------------------
 
--> A 'Modeling a Universe' update.
+-> A *'Modeling a Universe'* update.
 
 
 At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
@@ -393,13 +394,11 @@ Questions?  Questions?  Questions?  Questions?  Questions?
               Questions?  Questions?  Questions?  Questions?  Questions?  
                 Questions?  Questions?  Questions?  Questions?  Questions?  
                   Questions?  Questions?  Questions?  Questions?  Questions?  
-                    Questions?  Questions?  Questions?  Questions?  Questions?  
-                      Questions?  Questions?  Questions?  Questions?  Questions?
 
 
+Version 2 [MadMongers/10-2018-EconomicExchange](https://github.com/MadMongers/10-2018-EconomicExchange)
+Version 3 [MadMongers/11-2018-EconomicExchange](https://github.com/MadMongers/11-2018-EconomicExchange)
 
-
-"My BlockChain can beat your BlockChain." Ed Bott, ZDNet
 
 Modules used
   Moo                 # for test program's method calls
