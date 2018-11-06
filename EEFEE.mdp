@@ -157,7 +157,7 @@ small portion of the stuff I used.
    },
    ); # end of FSA::Rules->new()
    @behaviors = (undef, undef, );         # to be discussed later on!
-   return STEPS($fsa, 0, 4,\@behaviors);
+   return STEPS($fsa, 0, 1,\@behaviors);  # logic for Economic Exchange
    } # end of anonymous sub
 )->()
 );
@@ -312,7 +312,7 @@ I would go back to passing Array of Arrays and use anonymous subroutines.
         ...
        );
 
-New version's complete code will be on the MadMongers' github page
+This version's (V3) complete code is be on the MadMongers' github page
      [MadMongers/11-2018-EconomicExchange](https://github.com/MadMongers/11-2018-EconomicExchange)
 
 -------------------------------------------------
