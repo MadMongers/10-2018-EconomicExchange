@@ -4,9 +4,13 @@
 
 ->  Slide 1: Step Transactions  <-
 
-This is a refactoring of my little project.
+I want to thank JT for stealing my 15 minutes last month!
+   0) I got to make version 3
+   1) I got my HEREDOCs working in my source filter in Version 2 AND 3
 
-This is not a wing it rehash presentation.
+This is a refactoring of my little project (proof of concept).
+
+This is not a rehash of presentation and wing it to make it new.
 You can not experience schandenfreude!!!
 
 Why is this important?
@@ -247,7 +251,7 @@ I would go back to passing Array of Arrays and use anonymous subroutines.
         ...
        );
 
-New version's complete code will be on the MadMongers' github page
+This version's (v3) complete code will be on the MadMongers' github page
                 November
      MadMongers/11-2018-EconomicExchange
 
@@ -283,9 +287,9 @@ to compare to my talk.
 
 At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
 
-1) Did not mention Behaviors
+0) Did not mention Behaviors
 
-2) He said Tau Station does not do any logging
+1) He said Tau Station does not do any logging
 
    BUT
 

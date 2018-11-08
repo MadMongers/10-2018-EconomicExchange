@@ -7,6 +7,10 @@ MadMongers presentation Tues-13-Nov-2018
 
 Please review the mdp presentation EEFEE.mdp
 
+Remember in this source filter, each step must be on a single line!!!
+If you desire something more accommodating, consider yourself to be
+empowered. This is only a proof of concept.
+
 run.pl is a sample program ( $perl run.pl )
 
 To see filter output
