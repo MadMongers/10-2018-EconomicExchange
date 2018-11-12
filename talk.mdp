@@ -8,10 +8,11 @@ I want to thank JT for stealing my 15 minutes last month!
    0) I got to make version 3
    1) I got my HEREDOCs working in my source filter in Version 2 AND 3
 
-This is a refactoring of my little project (proof of concept).
+This is a refactoring of my proof of concept.
 
 This is not a rehash of presentation and wing it to make it new.
 You can not experience schandenfreude!!!
+*========================================================*
 
 Why is this important?
 
@@ -255,10 +256,23 @@ This version's (v3) complete code will be on the MadMongers' github page
                 November
      MadMongers/11-2018-EconomicExchange
 
+========================================================
+
+*Post-Post-Mortem*
+
+0) Migrate 'STEPS' subroutine into a module and handle
+   importing subroutine(s)/methods
+
+1) Put more logic into Economic Exchange.
+     Q: After a simple step (no Behavior) fails and
+        you're going thru FAILUREs and ALWAY(S) steps,
+        what if one of them fails? Currently I'm punting.
+   You're going to need to modify the Economic Exchange
+   to meet your organizaiton's requirements
+
 -------------------------------------------------
 
-->  Slide 17: Anonymous Subroutines Revisited   <-
-
+->  Slide 17: Post Mortem's Anonymous Subroutines Revisited   <-
 
 Version 3 will 
 
@@ -297,10 +311,10 @@ At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
    with fields filled in instead of variable names.
       [ Day 1, 41st minute ]
 
-   I'll leave that for another day. 
-
    Maybe thats why Tau Station uses constructors for individual steps.
    Pass back an object with lots of stuff.
+
+   But this was EE for everyone else!
 
 -------------------------------------------------
 

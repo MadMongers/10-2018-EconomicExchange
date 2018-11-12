@@ -315,9 +315,23 @@ I would go back to passing Array of Arrays and use anonymous subroutines.
 This version's (V3) complete code is be on the MadMongers' github page
      [MadMongers/11-2018-EconomicExchange](https://github.com/MadMongers/11-2018-EconomicExchange)
 
+========================================================
+
+*Post-Post-Mortem*
+
+0) Migrate 'STEPS' subroutine into a module and handle
+   importing subroutine(s)/methods
+
+1) Put more logic into Economic Exchange.
+     Q: After a simple step (no Behavior) fails and
+        you're going thru FAILUREs and ALWAY(S) steps,
+        what if one of them fails? Currently I'm punting.
+   You're going to need to modify the Economic Exchange
+   to meet your organizaiton's requirements
+
 -------------------------------------------------
 
-->  Anonymous Subroutines Revisited   <-
+->  Post Mortem's Anonymous Subroutines Revisited   <-
 
 Purchase_Stuff_From_Game_Crafter( 
       'arg1',
@@ -375,10 +389,10 @@ At the Swiss Perl WorkShop 2018, Mr. Poe presentation:
    with fields filled in instead of variable names.
       [ Day 1, 41st minute ]
 
-   I'll leave that for another day. 
-
    Maybe thats why Tau Station uses constructors for individual steps.
-   Pass back an object with lots of stuff.
+   Pass back an object with lots of info.
+
+   But this was EE for everyone else!
 
 -------------------------------------------------
 
@@ -396,7 +410,7 @@ Questions?  Questions?  Questions?  Questions?  Questions?
                   Questions?  Questions?  Questions?  Questions?  Questions?  
 
 Proof Concept
-Version 2 [MadMongers/04-2018-StepTransactiosn](https://github.com/MadMongers/04-2018-StepTransactions)
+Version 1 [MadMongers/04-2018-StepTransactiosn](https://github.com/MadMongers/04-2018-StepTransactions)
    Presentation: step.mdp
 Version 2 [MadMongers/10-2018-EconomicExchange](https://github.com/MadMongers/10-2018-EconomicExchange)
    Presentation: EEFEE.mdp
